@@ -6,8 +6,15 @@ ListNode nodeA = new ListNode() { Data = "A", Next = nodeB };
 nodeB.Previous = nodeA;
 
 JohnSmithSerializer serializer = new JohnSmithSerializer();
+
 using (FileStream fStream = new(@"D:\sample.json", FileMode.OpenOrCreate))
 {
     serializer.Serialize(nodeA, fStream);
+    fStream.Close();
+}
+
+using (FileStream fStream = new(@"D:\sample.json", FileMode.Open))
+{
+    serializer.Deserialize(fStream);
     fStream.Close();
 }
