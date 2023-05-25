@@ -69,7 +69,8 @@ namespace SerializerTests.Implementations
 
         #region DEEPCOPY
 
-        private static void ProcessNode(Dictionary<ListNode, int> inputDict, Dictionary<int, ListNode> outputDict, ListNode key)
+        private static void ProcessNode(Dictionary<ListNode, int> inputDict, 
+                                        Dictionary<int, ListNode> outputDict, ListNode key)
         {
             var hashSelf = inputDict[key];
             var hashPrev = key.Previous == null ? 0 : inputDict[key.Previous];
