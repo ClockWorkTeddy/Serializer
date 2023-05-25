@@ -18,7 +18,22 @@ namespace SerializerTests.Implementations
 
         public Task<ListNode> DeepCopy(ListNode head)
         {
-            throw new NotImplementedException();
+            Dictionary<ListNode, int> inputDict = new();
+            Dictionary<int, ListNode> outputDict = new();
+
+            while (head != null)
+            {
+                inputDict[head] = head.GetHashCode();
+                head = head.Next;
+            }
+
+            foreach (var hash in inputDict.Values)
+                outputDict[hash] = new ListNode();
+
+            foreach (var key in inputDict.Keys)
+                ProcessNode(inputDict, outputDict, key);
+
+            return Task.FromResult(outputDict.Values.First());
         }
 
         public Task<ListNode> Deserialize(Stream s)
@@ -51,6 +66,23 @@ namespace SerializerTests.Implementations
 
             return Task.CompletedTask;
         }
+
+        #region DEEPCOPY
+
+        private static void ProcessNode(Dictionary<ListNode, int> inputDict, Dictionary<int, ListNode> outputDict, ListNode key)
+        {
+            var hashSelf = inputDict[key];
+            var hashPrev = key.Previous == null ? 0 : inputDict[key.Previous];
+            var hashRand = key.Random == null ? 0 : inputDict[key.Random];
+            var hashNext = key.Next == null ? 0 : inputDict[key.Next];
+
+            outputDict[hashSelf].Data = key.Data.Clone().ToString();
+            outputDict[hashSelf].Previous = hashPrev == 0 ? null : outputDict[hashPrev];
+            outputDict[hashSelf].Random = hashRand == 0 ? null : outputDict[hashRand];
+            outputDict[hashSelf].Next = hashNext == 0 ? null : outputDict[hashNext];
+        }
+
+        #endregion
 
         #region SERIALIZE
 
@@ -94,15 +126,27 @@ namespace SerializerTests.Implementations
             var dictJsons = GetDictionaryFromJson(jsonNodes);
             var dictNodes = GetDictionaryNodes(dictJsons);
 
-            return LinkNodes(dictNodes);
+            return LinkNodes(dictNodes, dictJsons);
         }
 
-        private ListNode LinkNodes(object dictNodes)
+        private ListNode LinkNodes(Dictionary<string, ListNode> dictNodes, 
+                                   Dictionary<string, string> dictJsons)
         {
-            throw new NotImplementedException();
+            foreach (var dictJson in dictJsons) 
+            {
+                var previous = GetDataFromJson("Previous", dictJson.Value);
+                var random = GetDataFromJson("Random", dictJson.Value);
+                var next = GetDataFromJson("Next", dictJson.Value);
+
+                dictNodes[dictJson.Key].Previous = previous == "null" ? null : dictNodes[previous];
+                dictNodes[dictJson.Key].Random = random == "null" ? null : dictNodes[random];
+                dictNodes[dictJson.Key].Next = next == "null" ? null : dictNodes[next];
+            }
+
+            return dictNodes.Values.First();
         }
 
-        private object GetDictionaryNodes(Dictionary<string, string> dictJsons)
+        private Dictionary<string, ListNode> GetDictionaryNodes(Dictionary<string, string> dictJsons)
         {
             Dictionary<string, ListNode> dictNodes = new Dictionary<string, ListNode>();
 
@@ -110,17 +154,17 @@ namespace SerializerTests.Implementations
             {
                 dictNodes[jsonPair.Key] = new ListNode()
                 {
-                    Data = GetDataFromJson(jsonPair.Value)
+                    Data = GetDataFromJson("Data", jsonPair.Value)
                 };
             }
 
             return dictNodes;
         }
 
-        private string GetDataFromJson(string jsonValue)
+        private string GetDataFromJson(string key, string jsonValue)
         {
             var jsonParameters = jsonValue.Split(",");
-            var dataParameter = jsonParameters.FirstOrDefault(_ => _.IndexOf("Data") != -1)?.Trim();
+            var dataParameter = jsonParameters.FirstOrDefault(_ => _.IndexOf(key) != -1)?.Trim();
 
             return dataParameter.Split(":")[1].Trim();
         }
@@ -158,10 +202,7 @@ namespace SerializerTests.Implementations
 
             return jsonBody.Substring(startIndex, endIndex - startIndex);
         }
+
         #endregion
-
     }
-
-
-
 }
