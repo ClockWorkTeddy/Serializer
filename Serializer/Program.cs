@@ -1,32 +1,56 @@
 ﻿using SerializerTests.Implementations;
 using SerializerTests.Nodes;
 
-ListNode nodeB = new ListNode() { Data = "B" };
-ListNode nodeA = new ListNode() { Data = "A", Next = nodeB };
-nodeB.Previous = nodeA;
+ListNode oroginNode = GetComplexList();
 
 JohnSmithSerializer serializer = new JohnSmithSerializer();
 
-ListNode another = new ListNode();
-using (FileStream fStream = new(@"D:\sample.json", FileMode.OpenOrCreate))
+ListNode deserializedNode = await SerializeDeserialize(oroginNode);
+
+ListNode copiedNote = await serializer.DeepCopy(deserializedNode);
+
+deserializedNode = null;
+
+Console.WriteLine(copiedNote != null);
+
+async Task<ListNode> SerializeDeserialize(ListNode input)
 {
-    serializer.Serialize(nodeA, fStream);
-    fStream.Close();
+    ListNode another = new ListNode();
+
+    using (FileStream fStream = new(@".\sample.json", FileMode.Create))
+    {
+        await serializer.Serialize(input, fStream);
+        fStream.Close();
+    }
+
+    using (FileStream fStream = new(@".\sample.json", FileMode.Open))
+    {
+        another = await serializer.Deserialize(fStream);
+        fStream.Close();
+    }
+
+    return another;
 }
 
-using (FileStream fStream = new(@"D:\sample.json", FileMode.Open))
+ListNode GetComplexList()
 {
-    another = await serializer.Deserialize(fStream);
-    fStream.Close();
+    int nodesQnt = 10;
+    Random rnd = new Random();
+    Dictionary<int, ListNode> nodes = new();
+
+    for (int i = 0; i < nodesQnt; i++)
+        nodes[i] = new ListNode() { Data = i.ToString() };
+
+    for (int i = 0; i < nodesQnt; i++)
+    {
+        if (i > 0)
+            nodes[i].Previous = nodes[i - 1];
+
+        nodes[i].Random = i % 2 == 0 ? nodes[rnd.Next(nodesQnt)] : null;
+
+        if (i < nodesQnt - 1)
+            nodes[i].Next = nodes[i + 1];
+    }
+
+    return nodes[0];
 }
-
-using (FileStream fStream = new(@"D:\again.json", FileMode.OpenOrCreate))
-{
-    serializer.Serialize(another, fStream);
-    fStream.Close();
-}
-
-ListNode copied = await serializer.DeepCopy(nodeA);
-
-Console.WriteLine(copied);
-

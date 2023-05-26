@@ -9,17 +9,17 @@ namespace SerializerTests.Nodes
         /// <summary>
         /// Ref to the previous node in the list, NULL for head.
         /// </summary>
-        public ListNode? Previous;
+        public ListNode Previous;
 
         /// <summary>
         /// Ref to the next node in the list, null for tail.
         /// </summary>
-        public ListNode? Next;
+        public ListNode Next;
 
         /// <summary>
         /// Ref to the random node in the list, could be null.
         /// </summary>
-        public ListNode? Random;
+        public ListNode Random;
 
         /// <summary>
         /// Payload.

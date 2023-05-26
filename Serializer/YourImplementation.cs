@@ -16,7 +16,7 @@ namespace SerializerTests.Implementations
             //...
         }
 
-        public Task<ListNode> DeepCopy(ListNode head)
+        public Task<ListNode> DeepCopy(ListNode? head)
         {
             Dictionary<ListNode, int> inputDict = new();
             Dictionary<int, ListNode> outputDict = new();
@@ -46,7 +46,7 @@ namespace SerializerTests.Implementations
             return Task.FromResult(GetListNodeFromJson(jsonBody));
         }
 
-        public Task Serialize(ListNode head, Stream s)
+        public Task Serialize(ListNode? head, Stream s)
         {
             StringBuilder jsonBody = new();
 
@@ -114,7 +114,7 @@ namespace SerializerTests.Implementations
             return result;
         }
 
-        private string GetHashOrHull(ListNode node) =>
+        private string GetHashOrHull(ListNode? node) =>
             node == null ? "null" : node.GetHashCode().ToString();
 
         #endregion
